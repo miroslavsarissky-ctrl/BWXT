@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BWXT Strategic Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#009EA1;--orange:#ED6C22;--dark:#313132;--gray:#737377;--lt:#F6FBFB;--lt2:#FFF7F1;
+  --border:#E7E7E7;--bg:#FAFAFA;--mint:#DDF4F4;--sand:#FBE7D8;--slate:#EEF1F3;--green:#1A8E64;
+}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--dark);line-height:1.45}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{background:#fff;border-bottom:3px solid var(--teal);padding:18px 28px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.brand{display:flex;gap:14px;align-items:flex-start}
+.logo{width:42px;height:42px;border-radius:10px;background:var(--teal);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:12px;color:var(--gray);margin-top:3px}
+.meta{font-size:11px;color:var(--gray);margin-top:5px}
+.tabs{display:flex;gap:4px;background:#F2F2F2;padding:4px;border-radius:10px;flex-wrap:wrap}
+.tabs button{border:none;background:transparent;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer}
+.tabs button.active{background:var(--teal);color:#fff}
+.main{max-width:1320px;margin:0 auto;padding:22px 28px 30px}
+.tab-content{display:none}.tab-content.active{display:block}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;min-height:98px}
+.kpi.accent{background:var(--lt);border-color:#CDEAEA}
+.kpi.warm{background:var(--lt2);border-color:#F5D9C3}
+.k-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);font-weight:700;margin-bottom:6px}
+.k-value{font-size:28px;font-weight:800;line-height:1.08}
+.k-sub{font-size:11px;margin-top:6px;color:var(--gray);font-weight:700}
+.k-sub.up{color:var(--green)}
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:1.1fr .9fr}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.title{font-size:13px;text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin-bottom:14px}
+.note{font-size:12px;color:var(--gray)}
+.chart-wrap{position:relative;height:250px}.chart-wrap.short{height:210px}.chart-wrap.tall{height:300px}
+.section-gap{margin-top:14px}
+.callout{border-left:4px solid var(--teal);background:var(--lt);padding:16px 18px;border-radius:0 12px 12px 0;font-size:13px}
+.list{display:grid;gap:10px}
+.item{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+.item-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:6px}
+.item-title{font-size:15px;font-weight:800;line-height:1.25}
+.badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:4px 7px;border-radius:999px;white-space:nowrap}
+.badge.pr{background:var(--mint);color:var(--teal)}
+.badge.sec{background:var(--slate);color:#4B5A67}
+.badge.partner{background:var(--sand);color:var(--orange)}
+.item-meta{font-size:11px;color:var(--gray);margin-bottom:6px;font-weight:700}
+.item p{font-size:13px;color:var(--dark)}
+.item ul{margin:6px 0 0 18px;color:var(--dark)}
+.partner-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.partner-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px}
+.partner-card h3{font-size:16px;margin-bottom:8px}
+.partner-card p{font-size:13px;color:var(--dark)}
+.partner-tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+.tag{font-size:10px;padding:4px 7px;border-radius:999px;background:#F2F2F2;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.source-line{margin-top:8px;font-size:11px;color:var(--gray)}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mini-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.mini-card .num{font-size:24px;font-weight:800;margin-bottom:2px}
+.mini-card .lbl{font-size:11px;color:var(--gray);text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.table-like{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:120px 110px 1fr 120px;gap:12px;padding:12px 0;border-top:1px solid var(--border);font-size:13px}
+.row:first-child{border-top:none;padding-top:0}
+.row .date{font-weight:800}.row .form{color:var(--teal);font-weight:800}.row .impact{font-size:12px;color:var(--gray)}
+.footer{margin-top:22px;padding-top:14px;border-top:2px solid var(--teal);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--gray)}
+.footer .brandline{color:var(--teal);font-weight:700}
+.small{font-size:11px;color:var(--gray)}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.grid-2,.grid-3,.grid-4,.partner-grid,.mini-grid{grid-template-columns:1fr}}
+@media (max-width:760px){.main{padding:18px}.header{padding:16px 18px}.kpis{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand">
+    <div class="logo">nc</div>
+    <div>
+      <div class="h1">BWXT Strategic Dashboard</div>
+      <div class="sub">Financial base layer + commercial activity + partner map + SEC / press-release monitor</div>
+      <div class="meta">BWX Technologies, Inc. (NYSE: BWXT) · dashboard updated April 10, 2026 · built from 2025 10-K, SEC filings, and company releases</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="active" data-tab="overview">Overview</button>
+    <button data-tab="commercial">Commercial Activity</button>
+    <button data-tab="partners">Partners</button>
+    <button data-tab="filings">SEC & Releases</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="tab-content active" id="overview">
+    <div class="kpis">
+      <div class="kpi accent"><div class="k-label">2025 Revenue</div><div class="k-value">$3.20B</div><div class="k-sub up">+18% YoY</div></div>
+      <div class="kpi"><div class="k-label">2025 Backlog</div><div class="k-value">$7.26B</div><div class="k-sub up">+50% YoY</div></div>
+      <div class="kpi warm"><div class="k-label">Commercial Revenue</div><div class="k-value">$853M</div><div class="k-sub up">+63% YoY</div></div>
+      <div class="kpi"><div class="k-label">Commercial Backlog</div><div class="k-value">$1.72B</div><div class="k-sub up">24% of total backlog</div></div>
+      <div class="kpi accent"><div class="k-label">2026 Revenue Guide</div><div class="k-value">~$3.75B</div><div class="k-sub up">company guidance</div></div>
+      <div class="kpi"><div class="k-label">Customer Mix</div><div class="k-value">68% Gov</div><div class="k-sub">4 large utilities = 17% of 2025 sales</div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="title">Revenue by Segment</div>
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+        <div class="small">2024 and 2025 segment revenue from the annual report and FY2025 earnings release.</div>
+      </div>
+      <div class="card">
+        <div class="title">Backlog by Segment</div>
+        <div class="chart-wrap"><canvas id="backlogChart"></canvas></div>
+        <div class="small">Commercial backlog nearly doubled year on year, to $1.72B.</div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 section-gap">
+      <div class="card">
+        <div class="title">2025 Revenue Mix</div>
+        <div class="chart-wrap short"><canvas id="mixChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="title">2025 Customer Exposure</div>
+        <div class="chart-wrap short"><canvas id="customerChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="title">What Drove 2025 Commercial Growth</div>
+        <div class="callout">
+          BWXT said full-year Commercial Operations growth came from higher <b>nuclear components</b>, <b>fuel and fuel handling</b>, <b>medical sales</b>, and the <b>Kinectrics acquisition</b>, partly offset by slightly lower field services sales.
+        </div>
+        <div class="source-line">Primary source: FY2025 earnings release / Exhibit 99.1.</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2 section-gap">
+      <div class="card">
+        <div class="title">Interpretation for Supplier Dialogues</div>
+        <p style="font-size:13px;margin-bottom:10px">BWXT’s public materials now show a business that is no longer only a defense nuclear compounder. Commercial is becoming a broader platform with four visible engines: heavy components, lifecycle services, medical isotopes, and advanced fuel manufacturing.</p>
+        <p style="font-size:13px">That matters for supplier mapping because BWXT increasingly sits at several junctions in the value chain: utility refurbishment and new build, OEM component supply, isotope infrastructure, and fuel-chain enablement. The dashboard below is built to expose those junctions quickly.</p>
+      </div>
+      <div class="card">
+        <div class="title">2026 Watch Points</div>
+        <div class="list">
+          <div class="item">
+            <div class="item-title">Q1 2026 results due May 4</div>
+            <div class="item-meta">Catalyst</div>
+            <p>Next read on Kinectrics integration, commercial margins, Cambridge expansion progress, and advanced-fuel conversion of recent awards into revenue.</p>
+          </div>
+          <div class="item">
+            <div class="item-title">Erwin enrichment pre-application</div>
+            <div class="item-meta">Licensing / fuel</div>
+            <p>April 2026 NRC notification starts the runway toward a Q1 2027 enrichment license application for the new facility adjacent to NFS in Erwin.</p>
+          </div>
+          <div class="item">
+            <div class="item-title">Commercial margin recovery</div>
+            <div class="item-meta">Execution</div>
+            <p>Commercial revenue is growing fast, but the segment margin remains modest. Integration, growth investment, and pricing recovery are the pressure points to watch.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="commercial">
+    <div class="kpis">
+      <div class="kpi warm"><div class="k-label">Commercial Op. Income</div><div class="k-value">$57.7M</div><div class="k-sub up">+23% YoY</div></div>
+      <div class="kpi"><div class="k-label">Commercial Margin</div><div class="k-value">6.8%</div><div class="k-sub">below Gov Ops margin</div></div>
+      <div class="kpi"><div class="k-label">Adj. EBITDA</div><div class="k-value">$110.1M</div><div class="k-sub up">+49% YoY</div></div>
+      <div class="kpi accent"><div class="k-label">Kinectrics Scale</div><div class="k-value">1,300+</div><div class="k-sub">employees across 20 sites</div></div>
+      <div class="kpi"><div class="k-label">Pickering / Darlington</div><div class="k-value">C$1B+</div><div class="k-sub">announced Jan 2025</div></div>
+      <div class="kpi accent"><div class="k-label">CNL Contract</div><div class="k-value">C$1.2B/yr</div><div class="k-sub">avg. value, JV-led</div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="title">Commercial Activity Timeline</div>
+        <div class="list" id="commercialTimeline"></div>
+      </div>
+      <div class="card">
+        <div class="title">Commercial Revenue Footprint</div>
+        <div class="chart-wrap tall"><canvas id="commercialFootprintChart"></canvas></div>
+        <div class="small">This chart is directional. It groups BWXT’s disclosed commercial growth engines into the buckets management repeatedly highlights in filings and releases.</div>
+        <div class="mini-grid section-gap">
+          <div class="mini-card"><div class="num">48</div><div class="lbl">Steam generators for Pickering</div></div>
+          <div class="mini-card"><div class="num">315+</div><div class="lbl">Steam generators shipped historically</div></div>
+          <div class="mini-card"><div class="num">170k</div><div class="lbl">sq. ft. Lynchburg innovation campus</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 section-gap">
+      <div class="card">
+        <div class="title">Heavy Components</div>
+        <p style="font-size:13px">Ontario remains the visible commercial anchor. BWXT’s January 2025 announcement tied together Pickering life-extension steam generators and Darlington BWRX-300 reactor vessel work, giving the company a live bridge between traditional large-reactor refurbishment and SMR manufacturing.</p>
+      </div>
+      <div class="card">
+        <div class="title">Lifecycle Services</div>
+        <p style="font-size:13px">The Kinectrics acquisition turns BWXT from a product-heavy supplier into a more rounded lifecycle-services platform spanning plant services, engineering, inspection, testing, T&amp;D services, and isotope-related activities. Management also highlighted licensing-support work for Canadian utilities on new-build large reactors.</p>
+      </div>
+      <div class="card">
+        <div class="title">Advanced Fuel & Isotopes</div>
+        <p style="font-size:13px">Public releases show BWXT building credibility as an advanced-fuel enabler, especially in TRISO and HALEU-linked supply, while also expanding medical isotope capabilities through BWXT Medical and the inherited Kinectrics / Isogen orbit.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="partners">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="title">Partner Map</div>
+        <div class="partner-grid" id="partnerGrid"></div>
+      </div>
+      <div class="card">
+        <div class="title">Partnership Structure at a Glance</div>
+        <div class="chart-wrap"><canvas id="partnerTypeChart"></canvas></div>
+        <div class="small">Selected public partnerships visible in 2025 to April 2026 releases and the 10-K.</div>
+        <div class="callout section-gap">
+          The partner set is notable because it spans <b>utilities</b>, <b>reactor OEMs</b>, <b>government labs / programs</b>, and <b>nuclear-services JVs</b>. That gives BWXT multiple ways to monetize the nuclear upcycle, even when one lane slows down.
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 section-gap">
+      <div class="card">
+        <div class="title">Where newcleo should pay attention</div>
+        <p style="font-size:13px">BWXT’s public footprint suggests highest relevance in complex components, nuclear manufacturing quality systems, fuel-cycle-adjacent know-how, and partnerability with utilities and government-backed programs. It does <b>not</b> read as an LFR/MOX prime, but it does read as a supplier with widening adjacency to fuel, component and service layers.</p>
+      </div>
+      <div class="card">
+        <div class="title">What changed with Kinectrics</div>
+        <p style="font-size:13px">The acquisition matters less for simple scale than for adjacency. It adds field-service and plant-lifecycle capabilities, deeper Canadian utility ties, and an isotope / radiopharma bridge that broadens BWXT’s commercial mix beyond heavy forgings and nuclear hardware.</p>
+      </div>
+      <div class="card">
+        <div class="title">Strategic question</div>
+        <p style="font-size:13px">The real question is whether BWXT keeps using partnerships mainly to feed its existing component-and-fuel platform, or whether it becomes a more ambitious systems-level integrator in selected markets. The Kozloduy owner’s-engineer award hints at the latter.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="filings">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="title">Recent SEC Filings Worth Tracking</div>
+        <div class="table-like">
+          <div class="row"><div class="date">Feb 23, 2026</div><div class="form">10-K</div><div>FY2025 annual report. Commercial revenue reached $853.1M, commercial backlog $1.72B, and total backlog $7.26B.</div><div class="impact"><a href="https://www.sec.gov/Archives/edgar/data/1486957/000148695726000007/bwxt-20251231.htm" target="_blank" rel="noopener">Open filing</a></div></div>
+          <div class="row"><div class="date">Mar 18, 2026</div><div class="form">DEF 14A</div><div>2026 proxy sets the April 30, 2026 annual meeting and updates governance materials.</div><div class="impact"><a href="https://www.sec.gov/Archives/edgar/data/0001486957/000148695726000021/bwxt-20260318.htm" target="_blank" rel="noopener">Open filing</a></div></div>
+          <div class="row"><div class="date">Feb 18, 2026</div><div class="form">8-K</div><div>Board expanded from nine to ten directors and appointed Daniel L. Jablonsky, effective March 2, 2026.</div><div class="impact"><a href="https://www.sec.gov/Archives/edgar/data/1486957/000110465926017868/tm266839d1_8k.htm" target="_blank" rel="noopener">Open filing</a></div></div>
+          <div class="row"><div class="date">Feb 23, 2026</div><div class="form">8-K / Ex. 99.1</div><div>Earnings release initiated 2026 guidance: revenue about $3.75B, adjusted EBITDA $645M-$660M, FCF $305M-$320M.</div><div class="impact"><a href="https://www.sec.gov/Archives/edgar/data/1486957/000148695726000005/bwxt_123125xerexhibit991.htm" target="_blank" rel="noopener">Open exhibit</a></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="title">Recent Press Releases With Strategic Signal</div>
+        <div class="list" id="releaseList"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 section-gap">
+      <div class="card">
+        <div class="title">Monitor Next</div>
+        <p style="font-size:13px">Look for Q1 commentary on three items: Kinectrics margin shape, commercial nuclear manufacturing cadence in Cambridge, and whether advanced-fuel awards begin to create a more visible multi-customer pipeline.</p>
+      </div>
+      <div class="card">
+        <div class="title">Signal Hidden in the 10-K</div>
+        <p style="font-size:13px">BWXT says four large utility customers represented roughly 17% of 2025 consolidated revenue, while U.S. government contracts remained about 68%. The commercial platform is larger, but the business is still government-anchored.</p>
+      </div>
+      <div class="card">
+        <div class="title">Why the release stream matters</div>
+        <p style="font-size:13px">The public release cadence now shows more than quarterly finance. It is functioning as a running strategy ledger: components, fuels, services, enrichment, and international project-management work all appearing within a fifteen-month window.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Primary sources: BWXT FY2025 10-K, FY2025 earnings release / exhibit, BWXT investor-relations releases, SEC EDGAR filings.</span>
+    <span class="brandline">CONFIDENTIAL — newcleo Market Intelligence</span>
+  </div>
+</div>
+
+<script>
+const TEAL='#009EA1', ORANGE='#ED6C22', GRAY='#8A8A8B', DARK='#313132', MINT='#4DC3C5';
+Chart.defaults.font.family='Arial, Helvetica, sans-serif';
+Chart.defaults.font.size=11;
+Chart.defaults.color=GRAY;
+Chart.defaults.plugins.legend.labels.usePointStyle=true;
+Chart.defaults.plugins.legend.labels.boxWidth=8;
+Chart.defaults.plugins.legend.labels.padding=14;
+const gridColor='#EFEFEF';
+
+// Tabs
+Array.from(document.querySelectorAll('.tabs button')).forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Charts
+new Chart(document.getElementById('revenueChart'),{
+  type:'bar',
+  data:{labels:['2024','2025'],datasets:[
+    {label:'Government Operations',data:[2183.0,2350.1],backgroundColor:TEAL,borderRadius:6},
+    {label:'Commercial Operations',data:[524.0,853.1],backgroundColor:ORANGE,borderRadius:6}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index'},scales:{x:{grid:{display:false}},y:{grid:{color:gridColor},ticks:{callback:v=>'$'+v+'M'}}},plugins:{tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toLocaleString()}M`}}}}
+});
+
+new Chart(document.getElementById('backlogChart'),{
+  type:'bar',
+  data:{labels:['2024','2025'],datasets:[
+    {label:'Government Backlog',data:[3913,5541],backgroundColor:TEAL,borderRadius:6},
+    {label:'Commercial Backlog',data:[930,1720],backgroundColor:ORANGE,borderRadius:6}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index'},scales:{x:{grid:{display:false}},y:{grid:{color:gridColor},ticks:{callback:v=>'$'+v+'M'}}},plugins:{tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toLocaleString()}M`}}}}
+});
+
+new Chart(document.getElementById('mixChart'),{
+  type:'doughnut',
+  data:{labels:['Government Operations','Commercial Operations'],datasets:[{data:[2350.1,853.1],backgroundColor:[TEAL,ORANGE],borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'60%'}
+});
+
+new Chart(document.getElementById('customerChart'),{
+  type:'doughnut',
+  data:{labels:['U.S. Government','Four large utilities','Other'],datasets:[{data:[68,17,15],backgroundColor:[TEAL,ORANGE,MINT],borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'60%'}
+});
+
+new Chart(document.getElementById('commercialFootprintChart'),{
+  type:'bar',
+  data:{labels:['Heavy components','Lifecycle services','Medical / isotopes','Advanced fuels'],datasets:[{label:'Strategic weight',data:[90,85,70,75],backgroundColor:[TEAL,TEAL,ORANGE,ORANGE],borderRadius:8}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Directional view, not company-disclosed revenue: '+c.raw}}},scales:{x:{grid:{color:gridColor},max:100,ticks:{callback:v=>v}},y:{grid:{display:false}}}}
+});
+
+new Chart(document.getElementById('partnerTypeChart'),{
+  type:'polarArea',
+  data:{labels:['Utilities / owners','OEMs / developers','Gov / labs / programs','JV / service partners','Medical / isotope links'],datasets:[{data:[4,4,4,4,2],backgroundColor:['#009EA1','#32B8BA','#ED6C22','#F3A06E','#A8DCDD'],borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
+});
+
+// Timeline content
+const commercialTimeline=[
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'Erwin enrichment pre-application launched',
+    meta:'Apr 7, 2026 · NRC engagement / fuel-cycle buildout',
+    text:'BWXT notified the NRC of its plan to apply in Q1 2027 for a uranium enrichment license at a new facility adjacent to NFS in Erwin, Tennessee. The effort directly supports BWXT’s previously announced $1.5B NNSA defense-fuels contract.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-begins-nrc-engagement-licensing-new-defense-nuclear-fuel/'
+  },
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'Owner’s Engineer role at Kozloduy Units 7 & 8',
+    meta:'Dec 2, 2025 · international commercial services',
+    text:'BWXT said it will provide Owner’s Engineer services at Bulgaria’s new Kozloduy project as part of a three-party consortium. The full contract spans about ten years and is valued at hundreds of millions of euros.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-expands-service-offerings-owners-engineer-contract/'
+  },
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'Rolls-Royce SMR design contract and MoU',
+    meta:'Oct 28, 2025 · OEM supply-chain positioning',
+    text:'BWXT announced a nuclear steam-generator detailed-design contract plus an MoU covering future collaboration and readiness to supply multiple Rolls-Royce SMR units. BWXT also highlighted more than 315 steam generators shipped historically and its C$80M Cambridge capacity expansion.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-and-rolls-royce-smr-sign-agreements-advancing-key-nuclear/'
+  },
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'BWXT-led team wins Canadian Nuclear Laboratories contract',
+    meta:'Jun 12, 2025 · services / JV platform',
+    text:'The NLPC team, led by BWXT, Kinectrics and Amentum with Battelle as key subcontractor, was selected to manage Canadian Nuclear Laboratories. The contract averages C$1.2B per year over six years, with performance-based extensions up to 20 years.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-led-team-awarded-canadian-nuclear-laboratories-contract/'
+  },
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'Kinectrics acquisition closed',
+    meta:'May 21, 2025 · lifecycle services + isotopes',
+    text:'BWXT completed the acquisition of Kinectrics on May 20, 2025, bringing in a business with more than 1,300 employees across 20 sites and extending BWXT’s reach in lifecycle services, T&D and isotopes.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-closes-acquisition-kinectrics/'
+  },
+  {
+    badge:'PR', badgeClass:'pr',
+    title:'Ontario contracts for Pickering and Darlington',
+    meta:'Jan 27, 2025 · components / utility demand',
+    text:'BWXT announced contracts worth more than C$1B tied to Pickering life extension and the Darlington BWRX-300 program, including 48 steam generators for CanAtom and the reactor pressure vessel for GE Hitachi’s SMR.',
+    link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-awarded-historic-manufacturing-contracts-support-pickering/'
+  }
+];
+
+document.getElementById('commercialTimeline').innerHTML=commercialTimeline.map(x=>`
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title">${x.title}</div>
+      <span class="badge ${x.badgeClass}">${x.badge}</span>
+    </div>
+    <div class="item-meta">${x.meta}</div>
+    <p>${x.text}</p>
+    <div class="source-line"><a href="${x.link}" target="_blank" rel="noopener">Source</a></div>
+  </div>`).join('');
+
+const partners=[
+  {title:'Ontario Power Generation / CanAtom',tags:['utility','refurbishment','new build'],text:'BWXT’s Ontario manufacturing base is tied directly into Pickering life-extension work and the Darlington new-build program. CanAtom, the customer for Pickering steam generators, is the AtkinsRéalis / Aecon JV.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-awarded-historic-manufacturing-contracts-support-pickering/'},
+  {title:'GE Hitachi Nuclear Energy',tags:['SMR','RPV','OEM'],text:'BWXT is manufacturing the reactor pressure vessel for GE Hitachi’s BWRX-300, positioning itself as a core North American pressure-boundary supplier for SMR deployment.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-awarded-historic-manufacturing-contracts-support-pickering/'},
+  {title:'Rolls-Royce SMR',tags:['steam generators','design','MoU'],text:'October 2025 agreements cover detailed design of nuclear steam generators and a collaboration path for future multi-unit procurement.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-and-rolls-royce-smr-sign-agreements-advancing-key-nuclear/'},
+  {title:'Kinectrics',tags:['acquisition','services','isotopes'],text:'Acquired in May 2025, Kinectrics broadens BWXT into lifecycle management, testing, engineering, T&D, and isotope supply. BWXT’s filings describe it as part of Commercial Operations.',source:'https://www.sec.gov/Archives/edgar/data/1486957/000148695726000007/bwxt-20251231.htm'},
+  {title:'NLPC: Amentum + Battelle + Kinectrics',tags:['JV','CNL','operations'],text:'The Canadian Nuclear Laboratories operating model is a consortium story, not a solo BWXT story. It reveals partner comfort in long-duration nuclear operations and program management.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-led-team-awarded-canadian-nuclear-laboratories-contract/'},
+  {title:'Laurentis Energy Partners / CNPSA',tags:['owner’s engineer','AP1000','Bulgaria'],text:'BWXT’s Kozloduy consortium with Laurentis and Canadian Nuclear Partners S.A. shows international execution ambitions beyond manufacturing alone.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-expands-service-offerings-owners-engineer-contract/'},
+  {title:'Antares Nuclear / INL',tags:['TRISO','fuel','advanced reactor'],text:'BWXT said in February 2026 it was producing TRISO fuel compacts for Antares using HALEU produced by BWXT and planned for shipment to Idaho National Laboratory.',source:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-key-player-meeting-july-4-executive-order-criticality-goal/'},
+  {title:'Framatome via Isogen JV',tags:['medical isotopes','CANDU','irradiation'],text:'The 10-K notes Isogen as a Framatome-Kinectrics JV using CANDU reactors for irradiation services to isotope processors and radiopharmaceutical manufacturers.',source:'https://www.sec.gov/Archives/edgar/data/1486957/000148695726000007/bwxt-20251231.htm'}
+];
+
+document.getElementById('partnerGrid').innerHTML=partners.map(p=>`
+  <div class="partner-card">
+    <h3>${p.title}</h3>
+    <div class="partner-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <p>${p.text}</p>
+    <div class="source-line"><a href="${p.source}" target="_blank" rel="noopener">Source</a></div>
+  </div>`).join('');
+
+const releases=[
+  {badge:'PR', badgeClass:'pr', title:'Apr 7, 2026 · New enrichment facility licensing path', text:'BWXT began NRC engagement for a new enrichment facility adjacent to NFS in Erwin. The company expects to submit the license application in Q1 2027.', link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-begins-nrc-engagement-licensing-new-defense-nuclear-fuel/'},
+  {badge:'PR', badgeClass:'pr', title:'Feb 23, 2026 · FY2025 results and 2026 guidance', text:'Management guided to about $3.75B revenue and $645M-$660M adjusted EBITDA for 2026 after record 2025 backlog and strong commercial growth.', link:'https://investors.bwxt.com/news-releases/news-release-details/bwx-technologies-reports-fourth-quarter-and-full-year-2025/'},
+  {badge:'PR', badgeClass:'pr', title:'Dec 2, 2025 · Project Pele full core delivered', text:'BWXT, INL and the U.S. Army announced delivery of the full TRISO-fueled core for the Pele demonstration reactor.', link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-delivers-full-core-triso-nuclear-fuel-project-pele/'},
+  {badge:'PR', badgeClass:'pr', title:'Sep 16, 2025 · $1.5B NNSA defense fuels program', text:'BWXT won a contract valued at $1.5B to help establish domestic uranium enrichment capability for defense purposes.', link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-awarded-contract-nnsa-defense-fuels-program/'},
+  {badge:'PR', badgeClass:'pr', title:'Mar 26, 2025 · Innovation Campus opened', text:'BWXT opened a 170,000-square-foot Innovation Campus in Lynchburg for Advanced Technologies, underscoring investment in next-generation nuclear development.', link:'https://investors.bwxt.com/news-releases/news-release-details/bwxt-launches-innovation-campus-speed-development-advanced/'}
+];
+
+document.getElementById('releaseList').innerHTML=releases.map(r=>`
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title">${r.title}</div>
+      <span class="badge ${r.badgeClass}">${r.badge}</span>
+    </div>
+    <p>${r.text}</p>
+    <div class="source-line"><a href="${r.link}" target="_blank" rel="noopener">Source</a></div>
+  </div>`).join('');
+</script>
+</body>
+</html>
